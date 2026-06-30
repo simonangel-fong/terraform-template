@@ -99,6 +99,23 @@ jobs:
       - name: test
         if: steps.check.outputs.has_tests == 'true'
         working-directory: ${{ matrix.module }}
+        # Dummy credentials so cloud providers (AzureRM, AWS, Google) can initialize
+        # under `terraform test` with `command = plan`. Plan never actually calls the
+        # cloud APIs — the values just need to be present so the auth chain resolves.
+        env:
+          # AzureRM
+          ARM_CLIENT_ID: "00000000-0000-0000-0000-000000000000"
+          ARM_CLIENT_SECRET: "dummy"
+          ARM_SUBSCRIPTION_ID: "00000000-0000-0000-0000-000000000000"
+          ARM_TENANT_ID: "00000000-0000-0000-0000-000000000000"
+          ARM_SKIP_PROVIDER_REGISTRATION: "true"
+          # AWS
+          AWS_ACCESS_KEY_ID: "AKIAIOSFODNN7EXAMPLE"
+          AWS_SECRET_ACCESS_KEY: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+          AWS_DEFAULT_REGION: "us-east-1"
+          # Google
+          GOOGLE_CREDENTIALS: '{"type":"service_account"}'
+          GOOGLE_PROJECT: "dummy-project"
         run: terraform test -verbose
 
   tflint:
