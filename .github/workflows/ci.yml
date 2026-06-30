@@ -131,7 +131,7 @@ jobs:
         module: ${{ fromJSON(needs.discover.outputs.modules) }}
     steps:
       - uses: actions/checkout@v7
-      - name: terraform-docs check
+      - name: terraform-docs (regenerate in place)
         uses: terraform-docs/gh-actions@v1.4.1
         with:
           working-dir: ${{ matrix.module }}
@@ -139,7 +139,17 @@ jobs:
           output-file: README.md
           output-method: inject
           recursive: false
-          fail-on-diff: true
+          fail-on-diff: false
+          git-push: false
+      - name: Fail if README is stale
+        shell: bash
+        working-directory: ${{ matrix.module }}
+        run: |
+          if ! git diff --exit-code -- README.md; then
+            echo "::error::README.md in ${{ matrix.module }} is out of date."
+            echo "::error::Run 'terraform-docs .' in ${{ matrix.module }} and commit the result."
+            exit 1
+          fi
 
   # checkov:
   #   needs: discover
