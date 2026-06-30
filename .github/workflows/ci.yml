@@ -2,34 +2,145 @@ name: ci
 
 on:
   pull_request:
+    branches: [master, dev]
   push:
-    branches: [master]
+    branches: [master, dev]
+
+env:
+  TERRAFORM_VERSION: "1.9.8"
 
 jobs:
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      modules: ${{ steps.find.outputs.modules }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: find
+        name: Discover modules
+        shell: bash
+        run: |
+          mapfile -t mods < <(find aws azure gcp -mindepth 2 -maxdepth 2 -type d 2>/dev/null | sort)
+          if [ ${#mods[@]} -eq 0 ]; then
+            echo "modules=[]" >> "$GITHUB_OUTPUT"
+          else
+            json=$(printf '%s\n' "${mods[@]}" | jq -R . | jq -sc .)
+            echo "modules=$json" >> "$GITHUB_OUTPUT"
+          fi
+          printf '%s\n' "${mods[@]}"
+
   fmt:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: hashicorp/setup-terraform@v3
+      - uses: actions/checkout@v7
+      - uses: hashicorp/setup-terraform@v4
         with:
-          terraform_version: "1.9.8"
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
       - run: terraform fmt -check -recursive
 
   validate:
+    needs: discover
+    if: needs.discover.outputs.modules != '[]'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        module:
-          - azure/aks
+        module: ${{ fromJSON(needs.discover.outputs.modules) }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: hashicorp/setup-terraform@v3
+      - uses: actions/checkout@v7
+      - uses: hashicorp/setup-terraform@v4
         with:
-          terraform_version: "1.9.8"
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
       - name: init
         working-directory: ${{ matrix.module }}
         run: terraform init -backend=false
       - name: validate
         working-directory: ${{ matrix.module }}
         run: terraform validate
+
+  test:
+    needs: [discover, validate]
+    if: needs.discover.outputs.modules != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module: ${{ fromJSON(needs.discover.outputs.modules) }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+      - name: Skip if no tests
+        id: check
+        shell: bash
+        run: |
+          if compgen -G "${{ matrix.module }}/tests/*.tftest.hcl" > /dev/null; then
+            echo "has_tests=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_tests=false" >> "$GITHUB_OUTPUT"
+            echo "No tftest.hcl files in ${{ matrix.module }}/tests — skipping."
+          fi
+      - name: init
+        if: steps.check.outputs.has_tests == 'true'
+        working-directory: ${{ matrix.module }}
+        run: terraform init -backend=false
+      - name: test
+        if: steps.check.outputs.has_tests == 'true'
+        working-directory: ${{ matrix.module }}
+        run: terraform test -verbose
+
+  tflint:
+    needs: discover
+    if: needs.discover.outputs.modules != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module: ${{ fromJSON(needs.discover.outputs.modules) }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: terraform-linters/setup-tflint@v6
+        with:
+          tflint_version: latest
+      - name: tflint init
+        working-directory: ${{ matrix.module }}
+        run: tflint --init
+      - name: tflint
+        working-directory: ${{ matrix.module }}
+        run: tflint --recursive
+
+  docs:
+    needs: discover
+    if: needs.discover.outputs.modules != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module: ${{ fromJSON(needs.discover.outputs.modules) }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: terraform-docs check
+        uses: terraform-docs/gh-actions@v1.4.1
+        with:
+          working-dir: ${{ matrix.module }}
+          config-file: .terraform-docs.yml
+          output-file: README.md
+          output-method: inject
+          fail-on-diff: true
+
+  # checkov:
+  #   needs: discover
+  #   if: needs.discover.outputs.modules != '[]'
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       module: ${{ fromJSON(needs.discover.outputs.modules) }}
+  #   steps:
+  #     - uses: actions/checkout@v7
+  #     - uses: bridgecrewio/checkov-action@v12
+  #       with:
+  #         directory: ${{ matrix.module }}
+  #         framework: terraform
+  #         quiet: true
