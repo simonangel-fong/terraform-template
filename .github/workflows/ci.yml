@@ -127,6 +127,7 @@ jobs:
           config-file: .terraform-docs.yml
           output-file: README.md
           output-method: inject
+          recursive: false
           fail-on-diff: true
 
   # checkov:
