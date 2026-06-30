@@ -12,5 +12,5 @@ locals {
   # ##############################
   # cluster
   # ##############################
-  kubernetes_version = "1.30"
+  kubernetes_version = "1.35"
 }
