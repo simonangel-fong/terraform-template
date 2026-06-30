@@ -1,16 +1,16 @@
 # main.tf
 
 resource "azurerm_kubernetes_cluster" "this" {
-  name                = local.common_name
+  name                = var.aks_name
   resource_group_name = var.resource_group_name
   location            = var.location
-  tags                = merge(var.tags, local.default_tags)
+  tags                = var.tags
   kubernetes_version  = local.kubernetes_version
 
   # ##############################
   # Network
   # ##############################
-  dns_prefix = local.common_name
+  dns_prefix = var.aks_name
   dynamic "network_profile" {
     for_each = var.network_profile == null ? [] : [var.network_profile]
     content {

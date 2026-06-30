@@ -3,23 +3,13 @@
 # ##############################
 # Metadata
 # ##############################
-variable "project_name" {
-  description = "Short project identifier. Combined with env to form the cluster name and dns_prefix, so it must be DNS-safe."
+variable "aks_name" {
+  description = "Name of the AKS cluster. Used as both the resource name and dns_prefix."
   type        = string
 
   validation {
-    condition     = can(regex("^[a-z0-9]([-a-z0-9]*[a-z0-9])?$", var.project_name)) && length(var.project_name) <= 20
-    error_message = "project_name must be 1-20 chars, lowercase alphanumeric or hyphens, and must start and end with an alphanumeric."
-  }
-}
-
-variable "env" {
-  description = "Environment identifier (e.g. dev, staging, prod). Combined with project_name to form the cluster name and dns_prefix."
-  type        = string
-
-  validation {
-    condition     = can(regex("^[a-z0-9]([-a-z0-9]*[a-z0-9])?$", var.env)) && length(var.env) <= 10
-    error_message = "env must be 1-10 chars, lowercase alphanumeric or hyphens, and must start and end with an alphanumeric."
+    condition     = can(regex("^[a-z0-9]([-a-z0-9]*[a-z0-9])?$", var.aks_name)) && length(var.aks_name) <= 63
+    error_message = "aks_name must be 1-63 chars, lowercase alphanumeric or hyphens, and must start and end with an alphanumeric."
   }
 }
 
@@ -119,7 +109,7 @@ variable "network_profile" {
 }
 
 variable "tags" {
-  description = "Tags applied to the cluster. Merged with module-default tags (Project, Environment, ManagedBy)."
+  description = "Tags applied to the cluster."
   type        = map(string)
   default     = {}
 }

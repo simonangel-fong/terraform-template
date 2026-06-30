@@ -5,8 +5,7 @@
 mock_provider "azurerm" {}
 
 variables {
-  project_name           = "test-aks"
-  env                    = "dev"
+  aks_name               = "test-aks-dev"
   resource_group_name    = "test-rg"
   location               = "eastus"
   admin_group_object_ids = ["00000000-0000-0000-0000-000000000000"]
@@ -17,12 +16,12 @@ run "defaults" {
 
   assert {
     condition     = azurerm_kubernetes_cluster.this.name == "test-aks-dev"
-    error_message = "Cluster name should be '<project_name>-<env>'."
+    error_message = "Cluster name should match var.aks_name."
   }
 
   assert {
     condition     = azurerm_kubernetes_cluster.this.dns_prefix == "test-aks-dev"
-    error_message = "dns_prefix should default to '<project_name>-<env>'."
+    error_message = "dns_prefix should match var.aks_name."
   }
 
   assert {
