@@ -11,6 +11,10 @@ variables {
   admin_group_object_ids = ["00000000-0000-0000-0000-000000000000"]
 }
 
+provider "azurerm" {
+  features {}
+}
+
 run "defaults" {
   command = plan
 

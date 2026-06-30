@@ -19,11 +19,11 @@ Before doing anything, confirm:
 
 1. **Module name** — short noun, no provider prefix (e.g. `aks`, not `azure-aks`).
 2. **Cloud** — `aws` (default), `azure`, or `gcp`. If the name implies a cloud (e.g. "AKS" → azure), confirm rather than guess.
-3. **Tests?** — skip by default. Add `tests/basic.tftest.hcl` only if the user explicitly asks.
+3. **Tests** — include by default. Add `tests/basic.tftest.hcl` only if the user explicitly skips.
 
 ## Repo location
 
-Modules live at `<cloud>/<name>/` where `<cloud>` is `aws`, `azure`, or `gcp`. See [docs/info.md](../../../docs/info.md) for the full repo layout.
+Modules live at `<cloud>/<name>/` where `<cloud>` is `aws`, `azure`, or `gcp`. See [docs/repo.md](../../../docs/repo.md) for the full repo layout.
 
 ## Authoring rules
 
@@ -58,20 +58,25 @@ Use [azure/aks/](../../../azure/aks/) as the canonical example.
    - Update `01_variables.tf`, `02_locals.tf`, `03_providers.tf`, `04_outputs.tf` as needed for this layer.
 
    **3c. Verify.**
-   - Run `terraform fmt` and `terraform validate` on the module directory.
+   - Run the validate commands in [docs/qa.md](../../../docs/qa.md) (`terraform fmt`, `terraform init -backend=false`, `terraform validate`) from the module directory.
    - Fix any errors before continuing.
 
    **3d. Confirm with the user** that the layer is acceptable, then move to the next layer.
 
 ### Finalization
 
-4. **Create or update `README.md`** after all layers are complete. Follow the structure in [docs/readme_sample.md](../../../docs/readme_sample.md).
-5. **Tests** — only if the user opted in during input collection. Create `tests/basic.tftest.hcl` with one `command = plan` case exercising required variables.
+4. **Tests** — only if the user opted in during input collection. Create `tests/basic.tftest.hcl` with one `command = plan` case exercising required variables. Run `terraform test -verbose` (see [docs/qa.md](../../../docs/qa.md)).
+5. **Generate `README.md`.**
+   - Ensure `.terraform-docs.yml` exists in the module dir (copy from [azure/aks/.terraform-docs.yml](../../../azure/aks/.terraform-docs.yml) if missing).
+   - Create `README.md` with hand-written sections (title, usage, notes) plus the inject markers `<!-- BEGIN_TF_DOCS -->` / `<!-- END_TF_DOCS -->` where the generated tables go. Use [azure/aks/README.md](../../../azure/aks/README.md) as the structural reference.
+   - Run `terraform-docs .` to inject the Requirements / Providers / Resources / Inputs / Outputs tables. See [docs/qa.md](../../../docs/qa.md).
+   - Do **not** hand-write the table content — terraform-docs owns everything between the markers.
 
 ## Checklist before reporting done
 
 - [ ] [docs/guardrail.md](../../../docs/guardrail.md) was read this session
 - [ ] Module lives at `<cloud>/<name>/` under the correct cloud
-- [ ] `terraform fmt` and `terraform validate` pass
-- [ ] `README.md` present, follows [docs/readme_sample.md](../../../docs/readme_sample.md)
+- [ ] QA commands from [docs/qa.md](../../../docs/qa.md) pass (`fmt`, `validate`, and `test` if opted in)
+- [ ] `.terraform-docs.yml` present
+- [ ] `README.md` present with inject markers, regenerated via `terraform-docs .`
 - [ ] If opted in: `tests/basic.tftest.hcl` present

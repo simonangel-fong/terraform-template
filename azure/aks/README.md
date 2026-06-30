@@ -5,6 +5,10 @@
 - [Azure Kubernetes Service (AKS) - General purpose](#azure-kubernetes-service-aks---general-purpose)
   - [Requirements](#requirements)
   - [Usage](#usage)
+  - [Reference](#reference)
+  - [Requirements](#requirements-1)
+  - [Providers](#providers)
+  - [Resources](#resources)
   - [Inputs](#inputs)
   - [Outputs](#outputs)
   - [Default](#default)
@@ -55,32 +59,55 @@ The cluster name and `dns_prefix` are derived as `"${project_name}-${env}"`.
 
 ---
 
+## Reference
+
+<!-- BEGIN_TF_DOCS -->
+
+## Requirements
+
+| Name                                                                     | Version |
+| ------------------------------------------------------------------------ | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | >= 1.6  |
+| <a name="requirement_azurerm"></a> [azurerm](#requirement_azurerm)       | ~> 4.0  |
+
+## Providers
+
+| Name                                                         | Version |
+| ------------------------------------------------------------ | ------- |
+| <a name="provider_azurerm"></a> [azurerm](#provider_azurerm) | 4.79.0  |
+
+## Resources
+
+| Name                                                                                                                                  | Type     |
+| ------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| [azurerm_kubernetes_cluster.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/kubernetes_cluster) | resource |
+
 ## Inputs
 
-| Name                      | Type           | Required | Default | Description                                                                                                                     |
-| ------------------------- | -------------- | :------: | ------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `project_name`            | `string`       |   yes    | -       | Short project identifier. 1-20 chars, lowercase alphanumeric or hyphens (must start/end with alphanumeric). Feeds `dns_prefix`. |
-| `env`                     | `string`       |   yes    | -       | Environment identifier (e.g. `dev`, `staging`, `prod`). 1-10 chars, same charset as `project_name`.                             |
-| `resource_group_name`     | `string`       |   yes    | -       | Name of an existing resource group to deploy the cluster into.                                                                  |
-| `location`                | `string`       |   yes    | -       | Azure region for the cluster. Must match the resource group's region.                                                           |
-| `admin_group_object_ids`  | `list(string)` |   yes    | -       | Entra ID group object IDs granted cluster-admin. At least one required (local accounts are disabled).                           |
-| `private_cluster_enabled` | `bool`         |    no    | `false` | If true, the API server is only reachable from the cluster's VNet. Requires caller-side DNS plumbing.                           |
-| `default_node_pool`       | `object`       |    no    | `{}`    | Default (system) node pool configuration. See [Default node pool](#default-node-pool) below.                                    |
-| `network_profile`         | `object`       |    no    | `null`  | Cluster network profile. `null` keeps AzureRM defaults. See [Network profile](#network-profile) below.                          |
-| `tags`                    | `map(string)`  |    no    | `{}`    | Tags applied to the cluster. Merged with module-default tags (`Project`, `Environment`, `ManagedBy`).                           |
-
----
+| Name                                                                                                   | Description                                                                                                                                                    | Type                                                                                                                                                                                                                                                                                                                                                                                                                                     | Default | Required |
+| ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | :------: |
+| <a name="input_admin_group_object_ids"></a> [admin_group_object_ids](#input_admin_group_object_ids)    | Entra ID (Azure AD) group object IDs granted cluster-admin via AKS-managed Azure AD integration. At least one is required because local accounts are disabled. | `list(string)`                                                                                                                                                                                                                                                                                                                                                                                                                           | n/a     |   yes    |
+| <a name="input_env"></a> [env](#input_env)                                                             | Environment identifier (e.g. dev, staging, prod). Combined with project_name to form the cluster name and dns_prefix.                                          | `string`                                                                                                                                                                                                                                                                                                                                                                                                                                 | n/a     |   yes    |
+| <a name="input_location"></a> [location](#input_location)                                              | Azure region for the cluster. Must match the resource group's region.                                                                                          | `string`                                                                                                                                                                                                                                                                                                                                                                                                                                 | n/a     |   yes    |
+| <a name="input_project_name"></a> [project_name](#input_project_name)                                  | Short project identifier. Combined with env to form the cluster name and dns_prefix, so it must be DNS-safe.                                                   | `string`                                                                                                                                                                                                                                                                                                                                                                                                                                 | n/a     |   yes    |
+| <a name="input_resource_group_name"></a> [resource_group_name](#input_resource_group_name)             | Name of an existing resource group to deploy the cluster into.                                                                                                 | `string`                                                                                                                                                                                                                                                                                                                                                                                                                                 | n/a     |   yes    |
+| <a name="input_default_node_pool"></a> [default_node_pool](#input_default_node_pool)                   | Configuration for the default (system) node pool.                                                                                                              | <pre>object({<br/> name = optional(string, "default")<br/> vm_size = optional(string, "Standard_D2s_v3")<br/> node_count = optional(number, 2)<br/> enable_auto_scaling = optional(bool, false)<br/> min_count = optional(number, null)<br/> max_count = optional(number, null)<br/> vnet_subnet_id = optional(string, null)<br/> os_disk_size_gb = optional(number, 30)<br/> only_critical_addons = optional(bool, false)<br/> })</pre> | `{}`    |    no    |
+| <a name="input_network_profile"></a> [network_profile](#input_network_profile)                         | Cluster network profile. Set to null to use AzureRM defaults.                                                                                                  | <pre>object({<br/> network_plugin = optional(string, "azure")<br/> network_policy = optional(string, null)<br/> service_cidr = optional(string, null)<br/> dns_service_ip = optional(string, null)<br/> load_balancer_sku = optional(string, "standard")<br/> outbound_type = optional(string, "loadBalancer")<br/> })</pre>                                                                                                             | `null`  |    no    |
+| <a name="input_private_cluster_enabled"></a> [private_cluster_enabled](#input_private_cluster_enabled) | If true, the AKS API server is only reachable from the cluster's VNet. Requires private DNS / jumpbox plumbing on the caller side.                             | `bool`                                                                                                                                                                                                                                                                                                                                                                                                                                   | `false` |    no    |
+| <a name="input_tags"></a> [tags](#input_tags)                                                          | Tags applied to the cluster. Merged with module-default tags (Project, Environment, ManagedBy).                                                                | `map(string)`                                                                                                                                                                                                                                                                                                                                                                                                                            | `{}`    |    no    |
 
 ## Outputs
 
-| Name               | Sensitive | Description                                                                                   |
-| ------------------ | :-------: | --------------------------------------------------------------------------------------------- |
-| `cluster_id`       |    no     | Resource ID of the AKS cluster.                                                               |
-| `cluster_name`     |    no     | Name of the AKS cluster.                                                                      |
-| `kube_config_raw`  |    yes    | Raw kubeconfig for the cluster.                                                               |
-| `kubelet_identity` |    no     | Managed identity used by the kubelet (`object_id`, `client_id`, `user_assigned_identity_id`). |
-| `oidc_issuer_url`  |    no     | OIDC issuer URL for workload identity federation.                                             |
-| `kubeconfig_cmd`   |    no     | Ready-to-run `az aks get-credentials` command (Entra ID auth, no `--admin`).                  |
+| Name                                                                                | Description                                                                                                                                              |
+| ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| <a name="output_cluster_id"></a> [cluster_id](#output_cluster_id)                   | Resource ID of the AKS cluster.                                                                                                                          |
+| <a name="output_cluster_name"></a> [cluster_name](#output_cluster_name)             | Name of the AKS cluster.                                                                                                                                 |
+| <a name="output_kube_config_raw"></a> [kube_config_raw](#output_kube_config_raw)    | Raw kubeconfig for the cluster. Sensitive.                                                                                                               |
+| <a name="output_kubeconfig_cmd"></a> [kubeconfig_cmd](#output_kubeconfig_cmd)       | Azure CLI command to merge the cluster's kubeconfig into the local kubectl context. Uses Entra ID auth (no --admin) because local accounts are disabled. |
+| <a name="output_kubelet_identity"></a> [kubelet_identity](#output_kubelet_identity) | Managed identity used by the kubelet (object_id, client_id, user_assigned_identity_id).                                                                  |
+| <a name="output_oidc_issuer_url"></a> [oidc_issuer_url](#output_oidc_issuer_url)    | OIDC issuer URL for workload identity federation.                                                                                                        |
+
+<!-- END_TF_DOCS -->
 
 ---
 

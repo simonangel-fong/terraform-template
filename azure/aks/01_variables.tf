@@ -119,7 +119,7 @@ variable "network_profile" {
 }
 
 variable "tags" {
-  description = "Tags applied to all resources created by this module."
+  description = "Tags applied to the cluster. Merged with module-default tags (Project, Environment, ManagedBy)."
   type        = map(string)
   default     = {}
 }
