@@ -32,13 +32,15 @@
 
 ## Outputs
 
-| Name                                                                                | Description                                                                                                                                              |
-| ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| <a name="output_cluster_id"></a> [cluster_id](#output_cluster_id)                   | Resource ID of the AKS cluster.                                                                                                                          |
-| <a name="output_cluster_name"></a> [cluster_name](#output_cluster_name)             | Name of the AKS cluster.                                                                                                                                 |
-| <a name="output_kube_config_raw"></a> [kube_config_raw](#output_kube_config_raw)    | Raw kubeconfig for the cluster. Sensitive.                                                                                                               |
-| <a name="output_kubeconfig_cmd"></a> [kubeconfig_cmd](#output_kubeconfig_cmd)       | Azure CLI command to merge the cluster's kubeconfig into the local kubectl context. Uses Entra ID auth (no --admin) because local accounts are disabled. |
-| <a name="output_kubelet_identity"></a> [kubelet_identity](#output_kubelet_identity) | Managed identity used by the kubelet (object_id, client_id, user_assigned_identity_id).                                                                  |
-| <a name="output_oidc_issuer_url"></a> [oidc_issuer_url](#output_oidc_issuer_url)    | OIDC issuer URL for workload identity federation.                                                                                                        |
+| Name                                                                                                  | Description                                                                                          |
+| ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| <a name="output_cluster_ca_certificate"></a> [cluster_ca_certificate](#output_cluster_ca_certificate) | Base64-encoded cluster CA certificate from kube_config. Sensitive.                                   |
+| <a name="output_cluster_endpoint"></a> [cluster_endpoint](#output_cluster_endpoint)                   | API server endpoint (host) for the cluster, sourced from kube_config.                                |
+| <a name="output_cluster_id"></a> [cluster_id](#output_cluster_id)                                     | Resource ID of the AKS cluster.                                                                      |
+| <a name="output_cluster_name"></a> [cluster_name](#output_cluster_name)                               | Name of the AKS cluster.                                                                             |
+| <a name="output_cluster_version"></a> [cluster_version](#output_cluster_version)                      | Kubernetes version running on the cluster control plane.                                             |
+| <a name="output_kube_config_raw"></a> [kube_config_raw](#output_kube_config_raw)                      | Raw kubeconfig for the cluster. Sensitive.                                                           |
+| <a name="output_node_resource_group"></a> [node_resource_group](#output_node_resource_group)          | Auto-generated resource group that holds the cluster's node-pool infrastructure (VMSS, NICs, disks). |
+| <a name="output_oidc_issuer_url"></a> [oidc_issuer_url](#output_oidc_issuer_url)                      | OIDC issuer URL for workload identity federation.                                                    |
 
 <!-- END_TF_DOCS -->
