@@ -1,7 +1,8 @@
-# Test locally with a real subscription:
-#   az login
-#   $env:ARM_SUBSCRIPTION_ID = "<your-sub-id>"
-#   terraform test
+# Plan-only tests. The AzureRM provider is mocked so this runs in CI without
+# any Azure credentials. For tests that need real apply behavior, write a
+# separate *.tftest.hcl that uses the real provider and run it locally.
+
+mock_provider "azurerm" {}
 
 variables {
   project_name           = "test-aks"
@@ -9,10 +10,6 @@ variables {
   resource_group_name    = "test-rg"
   location               = "eastus"
   admin_group_object_ids = ["00000000-0000-0000-0000-000000000000"]
-}
-
-provider "azurerm" {
-  features {}
 }
 
 run "defaults" {
