@@ -40,11 +40,6 @@ run "defaults" {
   }
 
   assert {
-    condition     = azurerm_kubernetes_cluster.this.local_account_disabled == true
-    error_message = "local_account_disabled should be true by default."
-  }
-
-  assert {
     condition     = azurerm_kubernetes_cluster.this.oidc_issuer_enabled == true
     error_message = "oidc_issuer_enabled should be true by default."
   }
@@ -52,10 +47,5 @@ run "defaults" {
   assert {
     condition     = azurerm_kubernetes_cluster.this.workload_identity_enabled == true
     error_message = "workload_identity_enabled should be true by default."
-  }
-
-  assert {
-    condition     = azurerm_kubernetes_cluster.this.azure_active_directory_role_based_access_control[0].azure_rbac_enabled == true
-    error_message = "Azure RBAC should be enabled by default."
   }
 }

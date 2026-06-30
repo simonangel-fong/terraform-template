@@ -34,25 +34,6 @@ variable "location" {
 }
 
 # ##############################
-# Security / Identity
-# ##############################
-variable "admin_group_object_ids" {
-  description = "Entra ID (Azure AD) group object IDs granted cluster-admin via AKS-managed Azure AD integration. At least one is required because local accounts are disabled."
-  type        = list(string)
-
-  validation {
-    condition     = length(var.admin_group_object_ids) > 0
-    error_message = "admin_group_object_ids must contain at least one Entra ID group object ID; local accounts are disabled so there is no fallback."
-  }
-}
-
-variable "private_cluster_enabled" {
-  description = "If true, the AKS API server is only reachable from the cluster's VNet. Requires private DNS / jumpbox plumbing on the caller side."
-  type        = bool
-  default     = false
-}
-
-# ##############################
 # Node Pool
 # ##############################
 variable "default_node_pool" {

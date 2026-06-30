@@ -4,8 +4,33 @@ resource "azurerm_kubernetes_cluster" "this" {
   name                = var.aks_name
   resource_group_name = var.resource_group_name
   location            = var.location
-  kubernetes_version  = local.kubernetes_version
   tags                = var.tags
+
+  kubernetes_version = local.kubernetes_version
+
+  # ##############################
+  # Node Pool
+  # ##############################
+  default_node_pool {
+    name                         = var.default_node_pool.name
+    vm_size                      = var.default_node_pool.vm_size
+    node_count                   = var.default_node_pool.enable_auto_scaling ? null : var.default_node_pool.node_count
+    auto_scaling_enabled         = var.default_node_pool.enable_auto_scaling
+    min_count                    = var.default_node_pool.enable_auto_scaling ? var.default_node_pool.min_count : null
+    max_count                    = var.default_node_pool.enable_auto_scaling ? var.default_node_pool.max_count : null
+    vnet_subnet_id               = var.default_node_pool.vnet_subnet_id
+    os_disk_size_gb              = var.default_node_pool.os_disk_size_gb
+    only_critical_addons_enabled = var.default_node_pool.only_critical_addons
+  }
+
+  # ####################
+  # identity
+  # ####################
+  identity {
+    type = "SystemAssigned"
+  }
+  oidc_issuer_enabled       = true
+  workload_identity_enabled = true
 
   # ##############################
   # Network
@@ -23,38 +48,6 @@ resource "azurerm_kubernetes_cluster" "this" {
     }
   }
 
-  # ##############################
-  # Node Pool
-  # ##############################
-  default_node_pool {
-    name                         = var.default_node_pool.name
-    vm_size                      = var.default_node_pool.vm_size
-    node_count                   = var.default_node_pool.enable_auto_scaling ? null : var.default_node_pool.node_count
-    auto_scaling_enabled         = var.default_node_pool.enable_auto_scaling
-    min_count                    = var.default_node_pool.enable_auto_scaling ? var.default_node_pool.min_count : null
-    max_count                    = var.default_node_pool.enable_auto_scaling ? var.default_node_pool.max_count : null
-    vnet_subnet_id               = var.default_node_pool.vnet_subnet_id
-    os_disk_size_gb              = var.default_node_pool.os_disk_size_gb
-    only_critical_addons_enabled = var.default_node_pool.only_critical_addons
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  # ##############################
-  # Security
-  # ##############################
-  azure_active_directory_role_based_access_control {
-    azure_rbac_enabled     = true
-    admin_group_object_ids = var.admin_group_object_ids
-  }
-
-  local_account_disabled    = true
-  oidc_issuer_enabled       = true
-  workload_identity_enabled = true
-  azure_policy_enabled      = true
-  private_cluster_enabled   = var.private_cluster_enabled
 
   lifecycle {
     precondition {
