@@ -20,14 +20,25 @@ jobs:
         name: Discover modules
         shell: bash
         run: |
-          mapfile -t mods < <(find aws azure gcp -mindepth 2 -maxdepth 2 -type d 2>/dev/null | sort)
+          # A module = a directory at <cloud>/<name>/ that contains at least one .tf file.
+          # Using shell globs (not `find -maxdepth`) because find counts depth from each
+          # start path, so `find azure -maxdepth 2` would also match azure/aks/tests/.
+          shopt -s nullglob
+          mods=()
+          for dir in aws/*/ azure/*/ gcp/*/; do
+            dir="${dir%/}"
+            tf_files=( "$dir"/*.tf )
+            if [ ${#tf_files[@]} -gt 0 ]; then
+              mods+=( "$dir" )
+            fi
+          done
           if [ ${#mods[@]} -eq 0 ]; then
             echo "modules=[]" >> "$GITHUB_OUTPUT"
           else
             json=$(printf '%s\n' "${mods[@]}" | jq -R . | jq -sc .)
             echo "modules=$json" >> "$GITHUB_OUTPUT"
           fi
-          printf '%s\n' "${mods[@]}"
+          printf 'Discovered: %s\n' "${mods[@]}"
 
   fmt:
     runs-on: ubuntu-latest
