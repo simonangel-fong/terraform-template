@@ -1,16 +1,9 @@
 # main.tf
 
-# ##############################
-# Resource Group
-# ##############################
-data "azurerm_resource_group" "this" {
-  name = var.resource_group_name
-}
-
 resource "azurerm_kubernetes_cluster" "this" {
   name                = local.common_name
-  resource_group_name = data.azurerm_resource_group.this.name
-  location            = data.azurerm_resource_group.this.location
+  resource_group_name = var.resource_group_name
+  location            = var.location
   tags                = merge(var.tags, local.default_tags)
   kubernetes_version  = local.kubernetes_version
 
@@ -48,6 +41,20 @@ resource "azurerm_kubernetes_cluster" "this" {
   identity {
     type = "SystemAssigned"
   }
+
+  # ##############################
+  # Security
+  # ##############################
+  azure_active_directory_role_based_access_control {
+    azure_rbac_enabled     = true
+    admin_group_object_ids = var.admin_group_object_ids
+  }
+
+  local_account_disabled    = true
+  oidc_issuer_enabled       = true
+  workload_identity_enabled = true
+  azure_policy_enabled      = true
+  private_cluster_enabled   = var.private_cluster_enabled
 
   lifecycle {
     precondition {
