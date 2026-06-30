@@ -5,10 +5,9 @@
 mock_provider "azurerm" {}
 
 variables {
-  aks_name               = "test-aks-dev"
-  resource_group_name    = "test-rg"
-  location               = "eastus"
-  admin_group_object_ids = ["00000000-0000-0000-0000-000000000000"]
+  aks_name            = "test-aks-dev"
+  resource_group_name = "test-rg"
+  location            = "eastus"
 }
 
 run "defaults" {

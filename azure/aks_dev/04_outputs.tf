@@ -16,8 +16,9 @@ output "cluster_version" {
 }
 
 output "cluster_endpoint" {
-  description = "API server endpoint (host) for the cluster, sourced from kube_config."
+  description = "API server endpoint (host) for the cluster, sourced from kube_config. Sensitive."
   value       = azurerm_kubernetes_cluster.this.kube_config[0].host
+  sensitive   = true
 }
 
 output "cluster_ca_certificate" {

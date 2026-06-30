@@ -2,4 +2,4 @@
 
 | Template Name                                            | Provider | Description                |
 | -------------------------------------------------------- | -------- | -------------------------- |
-| [Azure Kubernetes Service (AKS) ](./azure/aks/README.md) | `Azure`  | General purpose AKS module |
+| [Azure Kubernetes Service (AKS, dev)](./azure/aks_dev/README.md) | `Azure`  | Dev-focused AKS module |
