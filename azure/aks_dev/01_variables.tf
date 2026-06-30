@@ -55,10 +55,7 @@ variable "default_node_pool" {
   default = {}
 
   validation {
-    condition = (
-      var.default_node_pool.autoscale == null ||
-      var.default_node_pool.autoscale.min <= var.default_node_pool.autoscale.max
-    )
+    condition     = try(var.default_node_pool.autoscale.min <= var.default_node_pool.autoscale.max, true)
     error_message = "default_node_pool.autoscale.min must be <= autoscale.max."
   }
 }
